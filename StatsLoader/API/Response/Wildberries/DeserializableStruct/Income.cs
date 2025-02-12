@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StatsLoader.API.Request.Wildberries
+namespace StatsLoader.API.Response.Wildberries.DeserializableStruct
 {
-    public interface IRequestWildberries
+    public class Income : IWildberriesResponse
     {
-    
+
     }
 }

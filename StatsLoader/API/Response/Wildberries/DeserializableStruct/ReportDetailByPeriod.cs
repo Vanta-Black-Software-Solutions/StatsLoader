@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Text.Json.Serialization;
 
-namespace StatsLoader.API.Response.Wildberries
+namespace StatsLoader.API.Response.Wildberries.DeserializableStruct
 {
-    public class reportDetailByPeriod : IWildberriesResponse
+    public class ResponseReportDetailByPeriod : IWildberriesResponse
     {
         public int RealizationReportId { get; set; }
         public DateTime DateFrom { get; set; }
@@ -80,4 +80,6 @@ namespace StatsLoader.API.Response.Wildberries
         public bool IsLegalEntity { get; set; }
         public string TrbxId { get; set; }
     }
+
+
 }

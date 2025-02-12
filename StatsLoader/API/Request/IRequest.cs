@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StatsLoader.API.Response.Wildberries
+namespace StatsLoader.API.Request
 {
-    public class Stock : IWildberriesResponse
+    public interface IRequest
     {
 
     }

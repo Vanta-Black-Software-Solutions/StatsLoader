@@ -18,7 +18,8 @@ namespace StatsLoader
         public enum ApiPlatform
         {
             Wildberries,
-            Ozon
+            Ozon,
+            Yandex
         }
 
 
