@@ -4,9 +4,8 @@ using System.Threading.Tasks;
 using StatsLoader.API.Request.Wildberries;
 using StatsLoader.Services;
 using StatsLoader.Services.NetInteraction;
-using StatsLoader.API.Response.Wildberries;
 using StatsLoader.Data;
-using StatsLoader.Utils;
+using StatsLoader.API.Request;
 
 namespace StatsLoader
 {
@@ -14,13 +13,14 @@ namespace StatsLoader
     {
         static async Task Main(string[] args)
         {
+            var requestByPlatform = new Dictionary<AppConfig.ApiPlatform, (BaseRequest request, string apiKey)>
+            {
+                { AppConfig.ApiPlatform.Wildberries, (AppConfig.DefaultWildberriesRequestData, AppConfig.WbApiKey) }
+            };
 
+            var apiProcessor = new ApiDataProcessor(requestByPlatform);
 
-            IDatabaseService databaseService = new DatabaseService();
-
-            
-
-
+            await apiProcessor.FetchAndSaveDataAsync();
         }
     }
 }

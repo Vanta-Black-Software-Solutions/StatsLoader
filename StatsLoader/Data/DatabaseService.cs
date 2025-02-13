@@ -1,58 +1,115 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading.Tasks;
 using Dapper;
 using Npgsql;
+using StatsLoader.API.Response.Wildberries.DeserializableStruct;
 
 namespace StatsLoader.Data
 {
-    public class DatabaseService : IDatabaseService
+    public class DatabaseService
     {
-        public async Task SaveDataAsync<T>(string tableName, List<T> data)
+        public async Task InitializeDatabase()
         {
-            if (data == null || data.Count == 0) return;
-
-            using (NpgsqlConnection connection = new NpgsqlConnection(AppConfig.connectionString))
+            using (var connection = new NpgsqlConnection(AppConfig.ConnectionString))
             {
                 await connection.OpenAsync();
 
-                string createTableQuery = GenerateCreateTableQuery<T>(tableName);
-                await connection.ExecuteAsync(createTableQuery);
+                // ✅ Проверяем соединение с БД
+                Console.WriteLine("Connected to DB");
 
+                // ✅ Проверяем, есть ли таблицы
+                string checkTablesQuery = @"
+                    SELECT table_name FROM information_schema.tables 
+                    WHERE table_schema = 'public';";
+
+                var tables = await connection.QueryAsync<string>(checkTablesQuery);
+                Console.WriteLine($"Existing tables: {string.Join(", ", tables)}");
+
+                if (!tables.Contains("reportdetailbyperiod"))
+                {
+                    Console.WriteLine("Table 'reportdetailbyperiod' does not exist. Creating...");
+                    string createTableQuery = GenerateCreateTableQuery<ResponseReportDetailByPeriod>("reportdetailbyperiod");
+                    await connection.ExecuteAsync(createTableQuery);
+                }
+                else
+                {
+                    Console.WriteLine("Table 'reportdetailbyperiod' already exists.");
+                }
+            }
+        }
+
+        public async Task SaveDataAsync<T>(string tableName, List<T> data)
+        {
+            if (data == null || data.Count == 0)
+            {
+                Console.WriteLine($"⚠️ No data to save for {tableName}");
+                return;
+            }
+
+            using (var connection = new NpgsqlConnection(AppConfig.ConnectionString))
+            {
+                await connection.OpenAsync();
+                await EnsureTableExists<T>(connection, tableName);
                 await EnsureColumnsExist<T>(connection, tableName);
+
+                Console.WriteLine($"✅ Saving {data.Count} records to {tableName}...");
 
                 string insertQuery = GenerateInsertQuery<T>(tableName);
                 await connection.ExecuteAsync(insertQuery, data);
+
+                Console.WriteLine($"✅ Data saved successfully!");
             }
         }
 
 
+        private async Task EnsureTableExists<T>(NpgsqlConnection connection, string tableName)
+        {
+            string checkTableQuery = @"
+                SELECT EXISTS (
+                    SELECT 1 FROM information_schema.tables 
+                    WHERE table_schema = 'public' 
+                    AND table_name = @TableName
+                );";
+
+            bool tableExists = await connection.ExecuteScalarAsync<bool>(checkTableQuery, new { TableName = tableName });
+
+            if (!tableExists)
+            {
+                Console.WriteLine($"Table '{tableName}' does not exist. Creating...");
+                string createTableQuery = GenerateCreateTableQuery<T>(tableName);
+                await connection.ExecuteAsync(createTableQuery);
+            }
+        }
 
         private string GenerateCreateTableQuery<T>(string tableName)
         {
             var properties = typeof(T).GetProperties();
-            var columns = properties.Select(p => $"{p.Name.ToLower()} {GetPostrgeType(p.PropertyType)}");
+            var columns = properties
+                .Select(p => $"{p.Name.ToLower()} {GetPostgresType(p.PropertyType)}")
+                .ToList();
 
-            return $@"CREATE TABLE IF NOT EXIST {tableName} (id SERIAL PRIMARY KEY, {string.Join(", ", columns)});";
+            return $@"
+                CREATE TABLE IF NOT EXISTS {tableName} (
+                    id SERIAL PRIMARY KEY,
+                    {string.Join(", ", columns)}
+                );";
         }
-
 
         private async Task EnsureColumnsExist<T>(NpgsqlConnection connection, string tableName)
         {
             var existingColumns = await GetExistingColumns(connection, tableName);
-            var properties = typeof(T).GetProperties()
-                .Select(p => p.Name.ToLower())
-                .Where(p => !existingColumns.Contains(p))
+            var newColumns = typeof(T).GetProperties()
+                .Where(p => !existingColumns.Contains(p.Name.ToLower()))
+                .Select(p => $"{p.Name.ToLower()} {GetPostgresType(p.PropertyType)}")
                 .ToList();
 
-            if (properties.Count > 0)
+            if (newColumns.Count > 0)
             {
-                foreach (var property in properties)
+                foreach (var column in newColumns)
                 {
-                    string alterQuery = $@"ALTER TABLE {tableName} ADD COLUMN {property} TEXT";
+                    string alterQuery = $"ALTER TABLE {tableName} ADD COLUMN {column};";
                     await connection.ExecuteAsync(alterQuery);
                 }
             }
@@ -69,22 +126,26 @@ namespace StatsLoader.Data
                 VALUES ({paramNames});";
         }
 
-
-
         private async Task<List<string>> GetExistingColumns(NpgsqlConnection connection, string tableName)
         {
-            string query = $@"SELECT column_name FROM information_schema.columns WHERE table_name = @TableName;";
+            string query = @"
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_name = @TableName;";
 
-            return (await connection.QueryAsync<string>(query, new {TableName = tableName})).AsList();
+            return (await connection.QueryAsync<string>(query, new { TableName = tableName })).ToList();
         }
 
-        private string GetPostrgeType(Type type)
+        private string GetPostgresType(Type type)
         {
-            if (type == typeof(int) || type == typeof(long)) return "BIGINT";
-            if (type == typeof(double) || type == typeof(float) || type == typeof(decimal)) return "DECIMAL";
-            if (type == typeof(bool)) return "BOOLEAN";
-            if (type == typeof(DateTime)) return "TIMESTAMP";
-            return "TEXT";
+            return type switch
+            {
+                Type t when t == typeof(int) || t == typeof(long) => "BIGINT",
+                Type t when t == typeof(double) || t == typeof(float) || t == typeof(decimal) => "DECIMAL",
+                Type t when t == typeof(bool) => "BOOLEAN",
+                Type t when t == typeof(DateTime) => "TIMESTAMP",
+                _ => "TEXT"
+            };
         }
     }
 }

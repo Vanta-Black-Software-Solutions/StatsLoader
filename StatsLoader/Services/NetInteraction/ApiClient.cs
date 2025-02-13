@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using StatsLoader.API.Request;
 
 namespace StatsLoader.Services.NetInteraction
 {
@@ -27,6 +28,7 @@ namespace StatsLoader.Services.NetInteraction
             });
         }
 
+        public abstract Task<bool> GetReport(BaseRequest request);
 
         public async Task<string> GetDataAsync(string endpoint, Dictionary<string, string>? queryParams = null)
         {

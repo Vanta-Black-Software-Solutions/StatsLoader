@@ -1,17 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
-using StatsLoader.API.Response.Wildberries;
-    
 
 namespace StatsLoader.Utils
 {
     internal class JsonParser
     {
-        public static List<T> ParseResponse<T>(string jsonData) where T : IWildberriesResponse
+
+        public static List<T> ParseResponse<T>(string jsonData) where T : class
         {
             try
             {
@@ -20,11 +16,13 @@ namespace StatsLoader.Utils
                     PropertyNameCaseInsensitive = true
                 }) ?? new List<T>();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                Console.WriteLine(ex.ToString());
+                Console.WriteLine($"❌ JSON Parse Error: {ex.Message}");
                 return new List<T>();
             }
         }
+
+
     }
 }

@@ -99,16 +99,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="API\Request\IRequest.cs" />
-    <Compile Include="API\Request\Wildberries\WbApiEndpoints.cs" />
+    <Compile Include="API\Request\BaseRequest.cs" />
+    <Compile Include="API\Request\Wildberries\RequestReportDetailByPeriod.cs" />
     <Compile Include="API\Request\Wildberries\WildberriesApiClient.cs" />
-    <Compile Include="API\Response\Wildberries\DeserializableStruct\Income.cs" />
-    <Compile Include="API\Response\Wildberries\IWildberriesResponse.cs" />
     <Compile Include="API\Response\Wildberries\DeserializableStruct\ReportDetailByPeriod.cs" />
-    <Compile Include="API\Response\Wildberries\DeserializableStruct\Stock.cs" />
     <Compile Include="AppConfig.cs" />
     <Compile Include="Data\DatabaseService.cs" />
-    <Compile Include="Data\IDatabaseService.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\ApiDataProcessor.cs" />
@@ -117,11 +113,10 @@
     <Compile Include="Utils\JsonParser.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include=".env" />
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="API\Request\Wildberries\SerializableStruct\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
