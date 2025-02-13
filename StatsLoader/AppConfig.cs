@@ -8,16 +8,19 @@ namespace StatsLoader
 {
     public static class AppConfig
     {
-        // API ключи
-        public static string WbApiKey { get; } = EnvLoader.Get("WB_API_KEY", "eyJhbGciOiJFUzI1NiIsImtpZCI6IjIwMjUwMTIwdjEiLCJ0eXAiOiJKV1QifQ.eyJlbnQiOjEsImV4cCI6MTc1NDkwMDY4MCwiaWQiOiIwMTk0ZWM2Mi1iYWZhLTc5MDEtYWY1MC0zZGYxN2NjNGZhZDMiLCJpaWQiOjMxOTQyMjIyLCJvaWQiOjUxNTIxLCJzIjoxMDczNzQxODYwLCJzaWQiOiI1MTZlYTNjMC0xMjY0LTU1MmYtOGQ0OC0yMzRiZTY2YWY4MTIiLCJ0IjpmYWxzZSwidWlkIjozMTk0MjIyMn0.bd8OFcqbZ8jOPLmdgQTPVFYSDgLhcAhWHHrggLLLZu-dWe2zNBeOv3BatoYXG3lNRTL9Cuk8dj8ieoKR2fkYWA");
 
-        // Подключение к БД
-        public static string ConnectionString { get; } = new ConnectionString().ConnString;
+        
+        private static readonly int CountDay = -7; // DAY COUNT FOR REQUEST
 
-        // Дефолтное количество дней для запросов (-7 дней)
-        private static readonly int CountDay = -7;
 
-        // Дефолтные параметры запроса для Wildberries
+
+
+        public static string WbApiKey { get; } = EnvLoader.Get("WB_API_KEY"); // API KEYS
+        public static string ConnectionString { get; } = new ConnectionString().ConnString; // CONNECTION TO DB
+
+
+
+        // DEFAULT REQUET PARAMS
         public static BaseRequest DefaultWildberriesRequestData => new RequestReportDetailByPeriod
         {
             dateFrom = DateTime.UtcNow.AddDays(CountDay),
@@ -26,7 +29,8 @@ namespace StatsLoader
             
         };
 
-        // Маркетплейсы
+
+        // PLATFORM
         public enum ApiPlatform
         {
             Wildberries,
@@ -35,6 +39,10 @@ namespace StatsLoader
         }
     }
 
+
+
+
+    // CONNECTION TO DB
     public class ConnectionString
     {
         public string Host { get; }
@@ -45,36 +53,37 @@ namespace StatsLoader
 
         public ConnectionString()
         {
-            Host = EnvLoader.Get("DB_HOST", "ep-winter-mouse-a9l6j2be-pooler.gwc.azure.neon.tech");
-            Database = EnvLoader.Get("DB_NAME", "neondb");
-            Username = EnvLoader.Get("DB_USER", "neondb_owner");
-            Password = EnvLoader.Get("DB_PASS", "npg_kA4pbgFl0tyY");
+            Host = EnvLoader.Get("DB_HOST");
+            Database = EnvLoader.Get("DB_NAME");
+            Username = EnvLoader.Get("DB_USER");
+            Password = EnvLoader.Get("DB_PASS");
 
             ConnString = $"Host={Host};Database={Database};Username={Username};Password={Password};";
         }
     }
 
+
+
     public static class EnvLoader
     {
         private static readonly Dictionary<string, string> EnvVariables = new Dictionary<string, string>();
 
-        static EnvLoader()
-        {
-            if (!File.Exists(".env")) return;
-            foreach (var line in File.ReadAllLines(".env"))
-            {
-                if (string.IsNullOrWhiteSpace(line) || line.StartsWith("#")) continue;
-                var parts = line.Split('=');
-                if (parts.Length == 2)
-                {
-                    EnvVariables[parts[0].Trim()] = parts[1].Trim();
-                }
-            }
-        }
 
-        public static string Get(string key, string defaultValue = "")
+        public static string Get(string keyPlatfom, string defaultValue = "")
         {
-            return EnvVariables.TryGetValue(key, out var value) ? value : defaultValue;
+            if (!File.Exists(".env")) return defaultValue;
+            else
+            {
+                string[] lines = File.ReadAllLines(".env");
+                foreach (string line in lines)
+                {
+                    string[] param = line.Split('=');
+                    if (param[0] == keyPlatfom) return param[1];
+                    else continue;
+                }
+                return EnvVariables.TryGetValue(keyPlatfom, out var value) ? value : defaultValue;
+            }
+
         }
     }
 

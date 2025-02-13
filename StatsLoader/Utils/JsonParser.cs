@@ -18,7 +18,7 @@ namespace StatsLoader.Utils
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ JSON Parse Error: {ex.Message}");
+                Console.WriteLine($"JSON Parse Error: {ex.Message}", Console.ForegroundColor = ConsoleColor.Red);
                 return new List<T>();
             }
         }
