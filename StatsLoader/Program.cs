@@ -7,6 +7,7 @@ namespace StatsLoader
 {
     internal class Program
     {
+        static ApiDataProcessor apiProcessor = new ApiDataProcessor();
 
         private static Dictionary<AppConfig.ApiPlatform, (BaseRequest request, string apiKey)> requestByPlatform = new()
         {
@@ -15,8 +16,7 @@ namespace StatsLoader
 
         static async Task Main(string[] args)
         {
-            ApiDataProcessor apiProcessor = new ApiDataProcessor(requestByPlatform);
-            await apiProcessor.FetchAndSaveDataAsync();
+            await apiProcessor.FetchAndSaveDataAsync(requestByPlatform);
         }
     }
 }

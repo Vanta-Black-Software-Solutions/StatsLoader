@@ -14,20 +14,6 @@ namespace StatsLoader.Services.NetInteraction
         private readonly HttpClient httpClient;
         private readonly string apiKey;
 
-        public ApiClient(string apiKey, AppConfig.ApiPlatform apiPlatform)
-        {
-            httpClient = new HttpClient();
-            this.apiKey = apiKey;
-
-            httpClient.DefaultRequestHeaders.Add("Authorization", apiPlatform switch
-            {
-                AppConfig.ApiPlatform.Wildberries => $"Bearer {this.apiKey}",
-                AppConfig.ApiPlatform.Ozon => $"Api-Key {this.apiKey}",
-                AppConfig.ApiPlatform.Yandex => $"{this.apiKey}", // TO DO: подставить апи яндекса 
-                _ => throw new ArgumentException("Unknown platform API")
-            });
-        }
-
         public abstract Task<bool> GetReport(BaseRequest request);
 
         public async Task<string> GetDataAsync(string endpoint, Dictionary<string, string>? queryParams = null)
@@ -40,7 +26,7 @@ namespace StatsLoader.Services.NetInteraction
                     endpoint += $"?{requestURL}";
                 }
 
-                var response = await httpClient.GetAsync(endpoint);
+                var response = await httpClient.GetAsync(endpoint, HttpCompletionOption.ResponseHeadersRead);
                 response.EnsureSuccessStatusCode();
                 return await response.Content.ReadAsStringAsync();
             }
@@ -56,7 +42,7 @@ namespace StatsLoader.Services.NetInteraction
             try
             {
                 string jsonBody = JsonSerializer.Serialize(body);
-                var content = new StringContent(jsonBody, Encoding.UTF8, jsonBody);
+                var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
 
                 var response = await httpClient.PostAsync(endpoint, content);
                 response.EnsureSuccessStatusCode();
@@ -67,6 +53,20 @@ namespace StatsLoader.Services.NetInteraction
                 Console.WriteLine($"Error: {ex.ToString()}");
                 return "{}";
             }
+        }
+
+        public ApiClient(string apiKey, AppConfig.ApiPlatform apiPlatform)
+        {
+            httpClient = new HttpClient();
+            this.apiKey = apiKey;
+
+            httpClient.DefaultRequestHeaders.Add("Authorization", apiPlatform switch
+            {
+                AppConfig.ApiPlatform.Wildberries => $"Bearer {this.apiKey}",
+                AppConfig.ApiPlatform.Ozon => $"Api-Key {this.apiKey}",
+                AppConfig.ApiPlatform.Yandex => $"{this.apiKey}", // TO DO: подставить апи яндекса 
+                _ => throw new ArgumentException("Unknown platform API")
+            });
         }
     }
 }

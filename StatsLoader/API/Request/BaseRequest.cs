@@ -18,17 +18,17 @@ namespace StatsLoader.API.Request
         public string SupplierArticle { get; set; }
         public string Barcode { get; set; }
 
-        public virtual Dictionary <string, string> ToQueryParams()
+        public virtual Dictionary<string, string> ToQueryParams()
         {
             Dictionary<string, string> queryParams = new Dictionary<string, string>();
 
-            if (dateFrom.HasValue) queryParams.Add("dateFrom", dateFrom.Value.ToString("yyyy-MM-dd"));
-            if (dateTo.HasValue) queryParams.Add("dateTo", dateTo.Value.ToString("yyyy-MM-dd"));
+            queryParams["dateFrom"] = dateFrom?.ToString("yyyy-MM-dd") ?? "";
+            queryParams["dateTo"] = dateTo?.ToString("yyyy-MM-dd") ?? "";
             if (Limit.HasValue) queryParams.Add("limit", Limit.Value.ToString());
             if (!string.IsNullOrWhiteSpace(SupplierArticle)) queryParams.Add("supplierArticle", SupplierArticle);
             if (!string.IsNullOrWhiteSpace(Barcode)) queryParams.Add("barcode", Barcode);
-            return queryParams;
 
+            return queryParams;
         }
 
         public virtual string ToJsonBody()

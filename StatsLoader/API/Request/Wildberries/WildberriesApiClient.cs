@@ -21,11 +21,13 @@ namespace StatsLoader.API.Request.Wildberries
         {
             try
             {
+                Console.WriteLine("🔹 Отправка запроса к API...");
+
                 string jsonResponse = await GetDataAsync(
                     "https://statistics-api.wildberries.ru/api/v5/supplier/reportDetailByPeriod",
                     request.ToQueryParams());
 
-                Console.WriteLine($"📥 API Response:\n{jsonResponse.Substring(0, Math.Min(jsonResponse.Length, 500))}...");
+                Console.WriteLine("✅ Ответ получен, длина: " + jsonResponse.Length);
 
                 var parsedData = JsonParser.ParseResponse<ResponseReportDetailByPeriod>(jsonResponse);
 
@@ -35,15 +37,19 @@ namespace StatsLoader.API.Request.Wildberries
                     return false;
                 }
 
+                Console.WriteLine("🔹 Сохранение данных в БД...");
                 await databaseService.SaveDataAsync("reportdetailbyperiod", parsedData);
+                Console.WriteLine("✅ Данные успешно сохранены!");
+
                 return true;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Error: {ex.Message}");
+                Console.WriteLine($"❌ Ошибка: {ex.Message}");
                 return false;
             }
         }
+
 
 
     }

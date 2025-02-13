@@ -44,7 +44,7 @@ namespace StatsLoader.Data
         {
             if (data == null || data.Count == 0)
             {
-                Console.WriteLine($"⚠️ No data to save for {tableName}");
+                Console.WriteLine($"No data to save for {tableName}");
                 return;
             }
 
@@ -52,23 +52,36 @@ namespace StatsLoader.Data
             {
                 await connection.OpenAsync();
                 await EnsureTableExists<T>(connection, tableName);
+                await EnsureColumnsExist<T>(connection, tableName);
 
-                Console.WriteLine($"✅ Saving {data.Count} records to {tableName}...");
+                Console.WriteLine($"Saving {data.Count} records to {tableName}...");
 
                 string insertQuery = GenerateInsertQuery<T>(tableName);
                 await connection.ExecuteAsync(insertQuery, data);
 
-                Console.WriteLine($"✅ Data saved successfully!");
+                Console.WriteLine($"Data saved successfully!");
             }
         }
 
 
         private async Task EnsureTableExists<T>(NpgsqlConnection connection, string tableName)
         {
-            string createTableQuery = GenerateCreateTableQuery<T>(tableName);
-            await connection.ExecuteAsync(createTableQuery);
-        }
+            string checkTableQuery = @"
+                SELECT EXISTS (
+                    SELECT 1 FROM information_schema.tables 
+                    WHERE table_schema = 'public' 
+                    AND table_name = @TableName
+                );";
 
+            bool tableExists = await connection.ExecuteScalarAsync<bool>(checkTableQuery, new { TableName = tableName });
+
+            if (!tableExists)
+            {
+                Console.WriteLine($"Table '{tableName}' does not exist. Creating...");
+                string createTableQuery = GenerateCreateTableQuery<T>(tableName);
+                await connection.ExecuteAsync(createTableQuery);
+            }
+        }
 
         private string GenerateCreateTableQuery<T>(string tableName)
         {
@@ -84,6 +97,23 @@ namespace StatsLoader.Data
                 );";
         }
 
+        private async Task EnsureColumnsExist<T>(NpgsqlConnection connection, string tableName)
+        {
+            var existingColumns = await GetExistingColumns(connection, tableName);
+            var newColumns = typeof(T).GetProperties()
+                .Where(p => !existingColumns.Contains(p.Name.ToLower()))
+                .Select(p => $"{p.Name.ToLower()} {GetPostgresType(p.PropertyType)}")
+                .ToList();
+
+            if (newColumns.Count > 0)
+            {
+                foreach (var column in newColumns)
+                {
+                    string alterQuery = $"ALTER TABLE {tableName} ADD COLUMN {column};";
+                    await connection.ExecuteAsync(alterQuery);
+                }
+            }
+        }
 
         private string GenerateInsertQuery<T>(string tableName)
         {

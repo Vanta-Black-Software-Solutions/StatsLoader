@@ -7,44 +7,33 @@ using System.Threading.Tasks;
 using StatsLoader.API.Request;
 using StatsLoader.API.Request.Wildberries;
 using StatsLoader.Data;
+using StatsLoader.Factories;
 using StatsLoader.Services.NetInteraction;
 
 namespace StatsLoader.Utils
 {
     internal class ApiDataProcessor
     {
-
-        private Dictionary<AppConfig.ApiPlatform, (BaseRequest request, string apiKey)> requestByPlatform;
-
-        public ApiDataProcessor (Dictionary<AppConfig.ApiPlatform, (BaseRequest request, string apiKey)> requestByPlatform)
-        {
-            this.requestByPlatform = requestByPlatform;
-        }
-
-
         /// <summary>
-        /// 
+        /// Запрашивает и сохраняет данные для каждой платформы.
         /// </summary>
-        /// <returns></returns>
-        public async Task FetchAndSaveDataAsync()
+        /// <returns>Задача без возвращаемого значения.</returns>
+        public async Task FetchAndSaveDataAsync(Dictionary<AppConfig.ApiPlatform, (BaseRequest request, string apiKey)> requestByPlatform)
         {
-            ApiClient apiClient;
+            IApiClient apiClient;
 
             try
             {
-                foreach (var request in requestByPlatform)
+                foreach (var entry in requestByPlatform)
                 {
-                    apiClient = request.Key switch
-                    {
-                        AppConfig.ApiPlatform.Wildberries => new WildberriesApiClient(request.Value.apiKey),
-                        //AppConfig.ApiPlatform.Ozon => new WildberriesApiClient(request.Value.apiKey),
-                        //AppConfig.ApiPlatform.Yandex => new WildberriesApiClient(request.Value.apiKey)
-                        _ => throw new ArgumentException("Unknown Platform")
-                    };
-                    if (await apiClient.GetReport(request.Value.request))
-                    {
+                    var platform = entry.Key;
+                    var request = entry.Value.request;
+                    var apiKey = entry.Value.apiKey;
+
+                    apiClient = ApiClientFactory.Create(platform, apiKey);
+
+                    if (await apiClient.GetReport(request))
                         Console.WriteLine("OK!", Console.ForegroundColor = ConsoleColor.Green);
-                    }
                     else
                         throw new ArgumentException("NO!");
                 }
