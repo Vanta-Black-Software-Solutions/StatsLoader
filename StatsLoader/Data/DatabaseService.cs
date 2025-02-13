@@ -10,36 +10,32 @@ namespace StatsLoader.Data
 {
     public class DatabaseService
     {
+        /// <summary>
+        /// Инициализирует базу данных и создаёт таблицы, если они отсутствуют.
+        /// </summary>
         public async Task InitializeDatabase()
         {
-            using (var connection = new NpgsqlConnection(AppConfig.ConnectionString))
+            try
             {
+                await using var connection = new NpgsqlConnection(AppConfig.ConnectionString);
                 await connection.OpenAsync();
 
-                // ✅ Проверяем соединение с БД
                 Console.WriteLine("Connected to DB");
 
-                // ✅ Проверяем, есть ли таблицы
-                string checkTablesQuery = @"
-                    SELECT table_name FROM information_schema.tables 
-                    WHERE table_schema = 'public';";
+                string createTableQuery = GenerateCreateTableQuery<ResponseReportDetailByPeriod>("reportdetailbyperiod");
+                await connection.ExecuteAsync(createTableQuery, commandTimeout: 1000);
 
-                var tables = await connection.QueryAsync<string>(checkTablesQuery);
-                Console.WriteLine($"Existing tables: {string.Join(", ", tables)}");
-
-                if (!tables.Contains("reportdetailbyperiod"))
-                {
-                    Console.WriteLine("Table 'reportdetailbyperiod' does not exist. Creating...");
-                    string createTableQuery = GenerateCreateTableQuery<ResponseReportDetailByPeriod>("reportdetailbyperiod");
-                    await connection.ExecuteAsync(createTableQuery);
-                }
-                else
-                {
-                    Console.WriteLine("Table 'reportdetailbyperiod' already exists.");
-                }
+                Console.WriteLine("Database initialized.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Database Initialization Failed: {ex.Message}");
             }
         }
 
+        /// <summary>
+        /// Сохраняет данные в БД.
+        /// </summary>
         public async Task SaveDataAsync<T>(string tableName, List<T> data)
         {
             if (data == null || data.Count == 0)
@@ -48,47 +44,45 @@ namespace StatsLoader.Data
                 return;
             }
 
-            using (var connection = new NpgsqlConnection(AppConfig.ConnectionString))
+            try
             {
+                await using var connection = new NpgsqlConnection(AppConfig.ConnectionString);
                 await connection.OpenAsync();
-                await EnsureTableExists<T>(connection, tableName);
-                await EnsureColumnsExist<T>(connection, tableName);
+
+                string createTableQuery = GenerateCreateTableQuery<T>(tableName);
+                await connection.ExecuteAsync(createTableQuery, commandTimeout: 1000);
 
                 Console.WriteLine($"Saving {data.Count} records to {tableName}...");
 
                 string insertQuery = GenerateInsertQuery<T>(tableName);
-                await connection.ExecuteAsync(insertQuery, data);
 
-                Console.WriteLine($"Data saved successfully!");
+                await using var transaction = connection.BeginTransaction();
+                try
+                {
+                    await connection.ExecuteAsync(insertQuery, data, transaction, commandTimeout: 1000);
+                    await transaction.CommitAsync();
+                    Console.WriteLine($"Data saved successfully to {tableName}");
+                }
+                catch (Exception txEx)
+                {
+                    await transaction.RollbackAsync();
+                    Console.WriteLine($"Transaction Failed: {txEx.Message}");
+                    throw;
+                }
             }
-        }
-
-
-        private async Task EnsureTableExists<T>(NpgsqlConnection connection, string tableName)
-        {
-            string checkTableQuery = @"
-                SELECT EXISTS (
-                    SELECT 1 FROM information_schema.tables 
-                    WHERE table_schema = 'public' 
-                    AND table_name = @TableName
-                );";
-
-            bool tableExists = await connection.ExecuteScalarAsync<bool>(checkTableQuery, new { TableName = tableName });
-
-            if (!tableExists)
+            catch (Exception ex)
             {
-                Console.WriteLine($"Table '{tableName}' does not exist. Creating...");
-                string createTableQuery = GenerateCreateTableQuery<T>(tableName);
-                await connection.ExecuteAsync(createTableQuery);
+                Console.WriteLine($"Error saving data to {tableName}: {ex.Message}");
             }
         }
 
+        /// <summary>
+        /// Создаёт SQL-запрос для создания таблицы.
+        /// </summary>
         private string GenerateCreateTableQuery<T>(string tableName)
         {
             var properties = typeof(T).GetProperties();
-            var columns = properties
-                .Select(p => $"{p.Name.ToLower()} {GetPostgresType(p.PropertyType)}")
-                .ToList();
+            var columns = properties.Select(p => $"{p.Name.ToLower()} {GetPostgresType(p.PropertyType)}");
 
             return $@"
                 CREATE TABLE IF NOT EXISTS {tableName} (
@@ -97,24 +91,9 @@ namespace StatsLoader.Data
                 );";
         }
 
-        private async Task EnsureColumnsExist<T>(NpgsqlConnection connection, string tableName)
-        {
-            var existingColumns = await GetExistingColumns(connection, tableName);
-            var newColumns = typeof(T).GetProperties()
-                .Where(p => !existingColumns.Contains(p.Name.ToLower()))
-                .Select(p => $"{p.Name.ToLower()} {GetPostgresType(p.PropertyType)}")
-                .ToList();
-
-            if (newColumns.Count > 0)
-            {
-                foreach (var column in newColumns)
-                {
-                    string alterQuery = $"ALTER TABLE {tableName} ADD COLUMN {column};";
-                    await connection.ExecuteAsync(alterQuery);
-                }
-            }
-        }
-
+        /// <summary>
+        /// Генерирует SQL-запрос для вставки данных.
+        /// </summary>
         private string GenerateInsertQuery<T>(string tableName)
         {
             var properties = typeof(T).GetProperties();
@@ -126,26 +105,16 @@ namespace StatsLoader.Data
                 VALUES ({paramNames});";
         }
 
-        private async Task<List<string>> GetExistingColumns(NpgsqlConnection connection, string tableName)
+        /// <summary>
+        /// Определяет PostgreSQL тип по C# типу.
+        /// </summary>
+        private string GetPostgresType(Type type) => type switch
         {
-            string query = @"
-                SELECT column_name 
-                FROM information_schema.columns 
-                WHERE table_name = @TableName;";
-
-            return (await connection.QueryAsync<string>(query, new { TableName = tableName })).ToList();
-        }
-
-        private string GetPostgresType(Type type)
-        {
-            return type switch
-            {
-                Type t when t == typeof(int) || t == typeof(long) => "BIGINT",
-                Type t when t == typeof(double) || t == typeof(float) || t == typeof(decimal) => "DECIMAL",
-                Type t when t == typeof(bool) => "BOOLEAN",
-                Type t when t == typeof(DateTime) => "TIMESTAMP",
-                _ => "TEXT"
-            };
-        }
+            Type t when t == typeof(int) || t == typeof(long) => "BIGINT",
+            Type t when t == typeof(double) || t == typeof(float) || t == typeof(decimal) => "DECIMAL",
+            Type t when t == typeof(bool) => "BOOLEAN",
+            Type t when t == typeof(DateTime) => "TIMESTAMP",
+            _ => "TEXT"
+        };
     }
 }

@@ -36,12 +36,14 @@ namespace StatsLoader.Utils
                         Console.WriteLine("OK!", Console.ForegroundColor = ConsoleColor.Green);
                     else
                         throw new ArgumentException("NO!");
+                    Console.ForegroundColor = ConsoleColor.White;
                 }
 
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Handling Error: {ex.Message}", Console.ForegroundColor = ConsoleColor.Red);
+                Console.ForegroundColor = ConsoleColor.White;
             }
         }
 
