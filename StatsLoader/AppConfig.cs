@@ -7,28 +7,23 @@ using StatsLoader.API.Request;
 namespace StatsLoader
 {
     public static class AppConfig
-    {
-
-        
+    {        
         private static readonly int CountDay = -7; // DAY COUNT FOR REQUEST
 
 
-
-
-        public static string WbApiKey { get; } = EnvLoader.Get("WB_API_KEY"); // API KEYS
+        public static string WildberriesApiKey { get; } = EnvLoader.Get("WB_API_KEY"); // API KEYS
         public static string ConnectionString { get; } = new ConnectionString().ConnString; // CONNECTION TO DB
 
 
 
-        // DEFAULT REQUET PARAMS
-        public static BaseRequest DefaultWildberriesRequestData => new RequestReportDetailByPeriod
+
+        public static BaseRequest DefaultWildberriesRequestData => new ReportDetailByPeriodRequest
         {
             dateFrom = DateTime.UtcNow.AddDays(CountDay),
             dateTo = DateTime.UtcNow,
             Limit = 1000
-            
-        };
 
+        };
 
         // PLATFORM
         public enum ApiPlatform
@@ -38,8 +33,6 @@ namespace StatsLoader
             Yandex
         }
     }
-
-
 
 
     // CONNECTION TO DB
@@ -61,8 +54,6 @@ namespace StatsLoader
             ConnString = $"Host={Host};Database={Database};Username={Username};Password={Password};";
         }
     }
-
-
 
     public static class EnvLoader
     {

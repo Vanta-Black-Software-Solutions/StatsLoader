@@ -99,18 +99,33 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="API\Endpoints\WildberriesApiEndpoints.cs" />
     <Compile Include="API\Request\BaseRequest.cs" />
-    <Compile Include="API\Request\Wildberries\RequestReportDetailByPeriod.cs" />
-    <Compile Include="API\Request\Wildberries\WildberriesApiClient.cs" />
-    <Compile Include="API\Response\Wildberries\DeserializableStruct\ReportDetailByPeriod.cs" />
+    <Compile Include="API\Request\Wildberries\WildberriesRequests.cs" />
+    <Compile Include="API\Response\Wildberries\IWildberriesResponse.cs" />
+    <Compile Include="API\Response\Wildberries\ResponseBestSellers.cs" />
+    <Compile Include="API\Response\Wildberries\ResponseDemandAnalytics.cs" />
+    <Compile Include="API\Response\Wildberries\ResponseExciseGoods.cs" />
+    <Compile Include="API\Response\Wildberries\ResponseFinancialAnalytics.cs" />
+    <Compile Include="API\Response\Wildberries\ResponseGeoAnalytics.cs" />
+    <Compile Include="API\Response\Wildberries\ResponseIncomes.cs" />
+    <Compile Include="API\Response\Wildberries\ResponseOrders.cs" />
+    <Compile Include="API\Response\Wildberries\ResponseRatingsAnalytics.cs" />
+    <Compile Include="API\Response\Wildberries\ResponseReturnsAnalytics.cs" />
+    <Compile Include="API\Response\Wildberries\ResponseSales.cs" />
+    <Compile Include="API\Response\Wildberries\ResponseStocks.cs" />
+    <Compile Include="API\Response\Wildberries\ResponseSupplierAnalytics.cs" />
+    <Compile Include="API\Response\Wildberries\ResponseTurnoverAnalytics.cs" />
+    <Compile Include="Services\NetInteraction\ApiClients\Wildberries\WildberriesApiClient.cs" />
+    <Compile Include="API\Response\Wildberries\ResponseReportDetailByPeriod.cs" />
     <Compile Include="AppConfig.cs" />
     <Compile Include="Data\DatabaseService.cs" />
     <Compile Include="Factories\ApiClientFactory.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utils\ApiDataProcessor.cs" />
-    <Compile Include="Services\NetInteraction\ApiClient.cs" />
-    <Compile Include="Services\NetInteraction\IApiClient.cs" />
+    <Compile Include="Services\NetInteraction\ApiClients\ApiClient.cs" />
+    <Compile Include="Services\NetInteraction\ApiClients\IApiClient.cs" />
     <Compile Include="Utils\JsonParser.cs" />
   </ItemGroup>
   <ItemGroup>

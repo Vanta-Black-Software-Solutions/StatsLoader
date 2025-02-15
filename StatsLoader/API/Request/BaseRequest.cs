@@ -10,20 +10,23 @@ namespace StatsLoader.API.Request
 {
     public abstract class BaseRequest
     {
-        [JsonIgnore] public bool IsPost;
-
-        public DateTime? dateFrom {  get; set; }
-        public DateTime? dateTo { get; set; }
-        public int? Limit { get; set; }
-        public string SupplierArticle { get; set; }
-        public string Barcode { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public virtual DateTime? dateFrom {  get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public virtual DateTime? dateTo { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public virtual int? Limit { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public virtual string SupplierArticle { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public virtual string Barcode { get; set; }
 
         public virtual Dictionary<string, string> ToQueryParams()
         {
             Dictionary<string, string> queryParams = new Dictionary<string, string>();
 
             queryParams["dateFrom"] = dateFrom?.ToString("yyyy-MM-dd") ?? "";
-            queryParams["dateTo"] = dateTo?.ToString("yyyy-MM-dd") ?? "";
+            queryParams["dateTo"] = dateTo?.ToString("yyyy-MM-dd") ?? DateTime.UtcNow.ToString("yyyy-MM-dd");
             if (Limit.HasValue) queryParams.Add("limit", Limit.Value.ToString());
             if (!string.IsNullOrWhiteSpace(SupplierArticle)) queryParams.Add("supplierArticle", SupplierArticle);
             if (!string.IsNullOrWhiteSpace(Barcode)) queryParams.Add("barcode", Barcode);

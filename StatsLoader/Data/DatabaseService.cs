@@ -1,23 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
+using System.Reflection;
+using System.Text.Json.Serialization;
 using Dapper;
-using Npgsql;
 using StatsLoader.API.Response.Wildberries.DeserializableStruct;
+using System.Threading.Tasks;
 
 namespace StatsLoader.Data
 {
     public class DatabaseService
     {
-        /// <summary>
-        /// Инициализирует базу данных и создаёт таблицы, если они отсутствуют.
-        /// </summary>
         public async Task InitializeDatabase()
         {
             try
             {
-                await using var connection = new NpgsqlConnection(AppConfig.ConnectionString);
+                await using var connection = new Npgsql.NpgsqlConnection(AppConfig.ConnectionString);
                 await connection.OpenAsync();
 
                 Console.WriteLine("Connected to DB");
@@ -33,9 +31,6 @@ namespace StatsLoader.Data
             }
         }
 
-        /// <summary>
-        /// Сохраняет данные в БД.
-        /// </summary>
         public async Task SaveDataAsync<T>(string tableName, List<T> data)
         {
             if (data == null || data.Count == 0)
@@ -46,7 +41,7 @@ namespace StatsLoader.Data
 
             try
             {
-                await using var connection = new NpgsqlConnection(AppConfig.ConnectionString);
+                await using var connection = new Npgsql.NpgsqlConnection(AppConfig.ConnectionString);
                 await connection.OpenAsync();
 
                 string createTableQuery = GenerateCreateTableQuery<T>(tableName);
@@ -76,45 +71,43 @@ namespace StatsLoader.Data
             }
         }
 
-        /// <summary>
-        /// Создаёт SQL-запрос для создания таблицы.
-        /// </summary>
+        private string GetColumnName(PropertyInfo p)
+        {
+            var attr = p.GetCustomAttributes(typeof(JsonPropertyNameAttribute), false)
+                        .Cast<JsonPropertyNameAttribute>()
+                        .FirstOrDefault();
+            return attr?.Name ?? p.Name.ToLower();
+        }
+
         private string GenerateCreateTableQuery<T>(string tableName)
         {
             var properties = typeof(T).GetProperties();
-            var columns = properties.Select(p => $"{p.Name.ToLower()} {GetPostgresType(p.PropertyType)}");
-
-            return $@"
-                CREATE TABLE IF NOT EXISTS {tableName} (
-                    id SERIAL PRIMARY KEY,
-                    {string.Join(", ", columns)}
-                );";
+            var columns = properties.Select(p => $"\"{GetColumnName(p)}\" {GetPostgresType(p.PropertyType)}").ToList();
+            string columnsPart = columns.Count > 0 ? string.Join(", ", columns) : "";
+            return $"CREATE TABLE IF NOT EXISTS \"{tableName}\" ({columnsPart});";
         }
 
-        /// <summary>
-        /// Генерирует SQL-запрос для вставки данных.
-        /// </summary>
         private string GenerateInsertQuery<T>(string tableName)
         {
             var properties = typeof(T).GetProperties();
-            var columnNames = string.Join(", ", properties.Select(p => p.Name.ToLower()));
+            var columnNames = string.Join(", ", properties.Select(p => $"\"{GetColumnName(p)}\""));
             var paramNames = string.Join(", ", properties.Select(p => $"@{p.Name}"));
-
-            return $@"
-                INSERT INTO {tableName} ({columnNames})
-                VALUES ({paramNames});";
+            return $"INSERT INTO \"{tableName}\" ({columnNames}) VALUES ({paramNames});";
         }
 
-        /// <summary>
-        /// Определяет PostgreSQL тип по C# типу.
-        /// </summary>
-        private string GetPostgresType(Type type) => type switch
+
+        private string GetPostgresType(Type type)
         {
-            Type t when t == typeof(int) || t == typeof(long) => "BIGINT",
-            Type t when t == typeof(double) || t == typeof(float) || t == typeof(decimal) => "DECIMAL",
-            Type t when t == typeof(bool) => "BOOLEAN",
-            Type t when t == typeof(DateTime) => "TIMESTAMP",
-            _ => "TEXT"
-        };
+            var underlyingType = Nullable.GetUnderlyingType(type) ?? type;
+            if (underlyingType == typeof(int) || underlyingType == typeof(long))
+                return "BIGINT";
+            if (underlyingType == typeof(double) || underlyingType == typeof(float) || underlyingType == typeof(decimal))
+                return "DECIMAL";
+            if (underlyingType == typeof(bool))
+                return "BOOLEAN";
+            if (underlyingType == typeof(DateTime))
+                return "TIMESTAMP";
+            return "TEXT";
+        }
     }
 }

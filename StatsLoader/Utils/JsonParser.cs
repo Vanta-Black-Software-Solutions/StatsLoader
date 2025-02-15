@@ -1,28 +1,24 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Text.Json;
 
 namespace StatsLoader.Utils
 {
     internal class JsonParser
     {
-
-        public static List<T> ParseResponse<T>(string jsonData) where T : class
+        public static object ParseResponse(string jsonData, Type responseType)
         {
             try
             {
-                return JsonSerializer.Deserialize<List<T>>(jsonData, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                }) ?? new List<T>();
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                // Десериализуем в List<T>
+                return JsonSerializer.Deserialize(jsonData, typeof(System.Collections.Generic.List<>).MakeGenericType(responseType), options);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"JSON Parse Error: {ex.Message}", Console.ForegroundColor = ConsoleColor.Red);
-                return new List<T>();
+                Console.WriteLine($"JSON Parse Error: {ex.Message}");
+                // Возвращаем пустой список нужного типа, если произошла ошибка
+                return Activator.CreateInstance(typeof(System.Collections.Generic.List<>).MakeGenericType(responseType));
             }
         }
-
-
     }
 }

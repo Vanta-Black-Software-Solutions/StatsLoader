@@ -11,7 +11,7 @@ namespace StatsLoader
 
         private static Dictionary<AppConfig.ApiPlatform, (BaseRequest request, string apiKey)> requestByPlatform = new()
         {
-            { AppConfig.ApiPlatform.Wildberries, (AppConfig.DefaultWildberriesRequestData, AppConfig.WbApiKey) }
+            { AppConfig.ApiPlatform.Wildberries, (AppConfig.DefaultWildberriesRequestData, AppConfig.WildberriesApiKey) }
         };
 
         static async Task Main(string[] args)

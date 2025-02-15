@@ -3,8 +3,10 @@ using System.Text.Json.Serialization;
 
 namespace StatsLoader.API.Response.Wildberries.DeserializableStruct
 {
-    public class ResponseReportDetailByPeriod
+    public class ResponseReportDetailByPeriod : IWildberriesResponse
     {
+        public int Id { get; set; }
+
         [JsonPropertyName("realizationreport_id")]
         public int RealizationReportId { get; set; }
 
@@ -226,5 +228,6 @@ namespace StatsLoader.API.Response.Wildberries.DeserializableStruct
 
         [JsonPropertyName("trbx_id")]
         public string TrbxId { get; set; }
+        
     }
 }
