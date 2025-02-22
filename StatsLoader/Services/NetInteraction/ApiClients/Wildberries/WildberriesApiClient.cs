@@ -54,7 +54,7 @@ namespace StatsLoader.API.Request.Wildberries
                             }
 
                             Console.WriteLine($"Save in DB: {tableNameInDatabase}");
-                            // Вызываем SaveDataAsync<T> через рефлексию с типом wildberriesResponse
+
                             var saveMethod = typeof(DatabaseService).GetMethod("SaveDataAsync");
                             var genericSaveMethod = saveMethod.MakeGenericMethod(wildberriesResponse);
                             await (Task)genericSaveMethod.Invoke(databaseService, new object[] { tableNameInDatabase, parsedData });

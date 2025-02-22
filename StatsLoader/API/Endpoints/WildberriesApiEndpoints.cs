@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using StatsLoader.API.Request;
 using StatsLoader.API.Request.Wildberries;
 using StatsLoader.API.Response.Wildberries;
 using StatsLoader.API.Response.Wildberries.DeserializableStruct;

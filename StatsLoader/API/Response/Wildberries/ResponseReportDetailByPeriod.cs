@@ -212,7 +212,7 @@ namespace StatsLoader.API.Response.Wildberries.DeserializableStruct
         public decimal Acceptance { get; set; }
 
         [JsonPropertyName("assembly_id")]
-        public int AssemblyId { get; set; }
+        public decimal AssemblyId { get; set; }
 
         [JsonPropertyName("kiz")]
         public string Kiz { get; set; }

@@ -8,7 +8,7 @@ namespace StatsLoader
 {
     public static class AppConfig
     {        
-        private static readonly int CountDay = -7; // DAY COUNT FOR REQUEST
+        private static readonly int CountDay = -360; // DAY COUNT FOR REQUEST
 
 
         public static string WildberriesApiKey { get; } = EnvLoader.Get("WB_API_KEY"); // API KEYS
@@ -19,9 +19,9 @@ namespace StatsLoader
 
         public static BaseRequest DefaultWildberriesRequestData => new ReportDetailByPeriodRequest
         {
-            dateFrom = DateTime.UtcNow.AddDays(CountDay),
+            dateFrom = DateTime.UtcNow.AddDays((double)CountDay),
             dateTo = DateTime.UtcNow,
-            Limit = 1000
+            Limit = 100000
 
         };
 

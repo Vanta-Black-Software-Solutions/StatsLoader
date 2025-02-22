@@ -4,34 +4,15 @@ using System.Linq;
 using System.Reflection;
 using System.Text.Json.Serialization;
 using Dapper;
-using StatsLoader.API.Response.Wildberries.DeserializableStruct;
+using Npgsql;
 using System.Threading.Tasks;
 
 namespace StatsLoader.Data
 {
     public class DatabaseService
     {
-        public async Task InitializeDatabase()
-        {
-            try
-            {
-                await using var connection = new Npgsql.NpgsqlConnection(AppConfig.ConnectionString);
-                await connection.OpenAsync();
 
-                Console.WriteLine("Connected to DB");
-
-                string createTableQuery = GenerateCreateTableQuery<ResponseReportDetailByPeriod>("reportdetailbyperiod");
-                await connection.ExecuteAsync(createTableQuery, commandTimeout: 1000);
-
-                Console.WriteLine("Database initialized.");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Database Initialization Failed: {ex.Message}");
-            }
-        }
-
-        public async Task SaveDataAsync<T>(string tableName, List<T> data)
+        public async Task SaveDataAsync<T>(string tableName, List<T> data) 
         {
             if (data == null || data.Count == 0)
             {
@@ -41,7 +22,7 @@ namespace StatsLoader.Data
 
             try
             {
-                await using var connection = new Npgsql.NpgsqlConnection(AppConfig.ConnectionString);
+                await using NpgsqlConnection connection = new NpgsqlConnection(AppConfig.ConnectionString);
                 await connection.OpenAsync();
 
                 string createTableQuery = GenerateCreateTableQuery<T>(tableName);
