@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using StatsLoader.API.Request.Wildberries;
 using StatsLoader.API.Response.Wildberries;
-using StatsLoader.API.Response.Wildberries.DeserializableStruct;
+using StatsLoader.API.Response.Wildberries.reports;
 
 namespace StatsLoader.API.Endpoints
 {
@@ -15,11 +15,11 @@ namespace StatsLoader.API.Endpoints
             wbEndpoints = new Dictionary<string, (string, Type, Type, bool)>
             {
                 // Отчёты – используем версию v5; reportDetailByPeriod требует limit
-                { "reportDetailByPeriod", ("https://statistics-api.wildberries.ru/api/v5/supplier/reportDetailByPeriod", typeof(ResponseReportDetailByPeriod), typeof(ReportDetailByPeriodRequest), false) },
-                { "sales", ("https://statistics-api.wildberries.ru/api/v1/supplier/sales", typeof(ResponseSales), typeof(ReportDetailByPeriodRequest), false) },
-                { "stocks", ("https://statistics-api.wildberries.ru/api/v1/supplier/stocks", typeof(ResponseStocks), typeof(ReportDetailByPeriodRequest), false) },
-                { "incomes", ("https://statistics-api.wildberries.ru/api/v1/supplier/incomes", typeof(ResponseIncomes), typeof(ReportDetailByPeriodRequest), false) },
-                { "orders", ("https://statistics-api.wildberries.ru/api/v1/supplier/orders", typeof(ResponseOrders), typeof(ReportDetailByPeriodRequest), false) },   
+                { "reportDetailByPeriod", ("https://statistics-api.wildberries.ru/api/v5/supplier/reportDetailByPeriod", typeof(ReportDetailByPeriodResponse), typeof(ReportDetailByPeriodRequest), false) },
+                { "sales", ("https://statistics-api.wildberries.ru/api/v1/supplier/sales", typeof(SalesResponse), typeof(ReportDetailByPeriodRequest), false) },
+                { "stocks", ("https://statistics-api.wildberries.ru/api/v1/supplier/stocks", typeof(StocksResponse), typeof(ReportDetailByPeriodRequest), false) },
+                { "incomes", ("https://statistics-api.wildberries.ru/api/v1/supplier/incomes", typeof(IncomesResponse), typeof(ReportDetailByPeriodRequest), false) },
+                { "orders", ("https://statistics-api.wildberries.ru/api/v1/supplier/orders", typeof(OrdersResponse), typeof(ReportDetailByPeriodRequest), false) },   
                /* { "sales", ("https://statistics-api.wildberries.ru/api/v1/supplier/sales", typeof(DateFromOnlyRequest), typeof(ReportDetailByPeriodRequest), false) },
                 { "stocks", ("https://statistics-api.wildberries.ru/api/v1/supplier/stocks", typeof(DateFromOnlyRequest), typeof(ReportDetailByPeriodRequest), false) },
                 { "incomes", ("https://statistics-api.wildberries.ru/api/v1/supplier/incomes", typeof(DateFromOnlyRequest), typeof(ReportDetailByPeriodRequest), false) },

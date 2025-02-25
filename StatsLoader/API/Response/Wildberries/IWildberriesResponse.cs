@@ -7,9 +7,8 @@ using System.Threading.Tasks;
 
 namespace StatsLoader.API.Response.Wildberries
 {
-    public interface IWildberriesResponse
+    internal class IWildberriesResponse
     {
-        [JsonIgnore]
-        public int Id { get; set; } // Уникальный идентификатор для хранения в БД (если нужен)
+        [JsonIgnore] public int Id { get; set; }
     }
 }

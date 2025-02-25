@@ -103,21 +103,17 @@
     <Compile Include="API\Request\BaseRequest.cs" />
     <Compile Include="API\Request\Wildberries\WildberriesRequests.cs" />
     <Compile Include="API\Response\Wildberries\IWildberriesResponse.cs" />
-    <Compile Include="API\Response\Wildberries\ResponseBestSellers.cs" />
-    <Compile Include="API\Response\Wildberries\ResponseDemandAnalytics.cs" />
-    <Compile Include="API\Response\Wildberries\ResponseExciseGoods.cs" />
-    <Compile Include="API\Response\Wildberries\ResponseFinancialAnalytics.cs" />
-    <Compile Include="API\Response\Wildberries\ResponseGeoAnalytics.cs" />
-    <Compile Include="API\Response\Wildberries\ResponseIncomes.cs" />
-    <Compile Include="API\Response\Wildberries\ResponseOrders.cs" />
-    <Compile Include="API\Response\Wildberries\ResponseRatingsAnalytics.cs" />
-    <Compile Include="API\Response\Wildberries\ResponseReturnsAnalytics.cs" />
-    <Compile Include="API\Response\Wildberries\ResponseSales.cs" />
-    <Compile Include="API\Response\Wildberries\ResponseStocks.cs" />
-    <Compile Include="API\Response\Wildberries\ResponseSupplierAnalytics.cs" />
-    <Compile Include="API\Response\Wildberries\ResponseTurnoverAnalytics.cs" />
+    <Compile Include="API\Response\Wildberries\reports\IncomesResponse.cs" />
+    <Compile Include="API\Response\Wildberries\reports\OrdersResponse.cs" />
+    <Compile Include="API\Response\Wildberries\reports\ReportDetailByPeriodResponse.cs" />
+    <Compile Include="API\Response\Wildberries\reports\StocksResponse.cs" />
+    <Compile Include="API\Response\Wildberries\reports\SalesResponse.cs" />
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
     <Compile Include="Services\NetInteraction\ApiClients\Wildberries\WildberriesApiClient.cs" />
-    <Compile Include="API\Response\Wildberries\ResponseReportDetailByPeriod.cs" />
     <Compile Include="AppConfig.cs" />
     <Compile Include="Data\DatabaseService.cs" />
     <Compile Include="Factories\ApiClientFactory.cs" />
@@ -135,6 +131,10 @@
     </Content>
     <None Include="App.config" />
     <None Include="packages.config" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -1,7 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+
 using StatsLoader.API.Request;
 using StatsLoader.Utils;
+using StatsLoader.Properties;
+using System.Threading;
 
 namespace StatsLoader
 {
@@ -16,7 +19,20 @@ namespace StatsLoader
 
         static async Task Main(string[] args)
         {
-            await apiProcessor.FetchAndSaveDataAsync(requestByPlatform);
+            if (Settings.Default.IsFirstRun) 
+            { 
+                Settings.Default.IsFirstRun = false;
+
+                System.Console.WriteLine("First Run");
+                await apiProcessor.FetchAndSaveDataAsync(requestByPlatform);
+            }
+
+            while (true)
+            {                                 
+                Thread.Sleep(30 * 60 * 1000);
+                System.Console.WriteLine(System.DateTime.Now.ToShortTimeString());
+                await apiProcessor.FetchAndSaveDataAsync(requestByPlatform);
+            }
         }
     }
 }

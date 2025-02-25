@@ -3,7 +3,6 @@ using System.Collections.Generic;
 
 namespace StatsLoader.API.Request.Wildberries
 {
-        // Общий базовый класс для запросов, которым нужен только параметр dateFrom
     public abstract class DateFromOnlyRequest : BaseRequest
     {
         public override Dictionary<string, string> ToQueryParams()
